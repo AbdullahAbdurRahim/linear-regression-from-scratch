@@ -6,7 +6,7 @@ with open("data_linear3.csv", "w") as file:
     c = 4.5679 #random.choice([_ for _ in range(-1000, 1001)])
     for x in range(0,1001):
         X = x
-        noise = random.gauss(-700, 701)
+        noise = random.gauss(0, 700)
         Y = m * X + c + noise
         file.write(f"{X},{Y}\n")
 """

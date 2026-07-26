@@ -1,5 +1,6 @@
 # Linear Regression From Scratch
 
+## About this project
 I built this personal project to implement linear regression from scratch in Python to apply the statistics knowledge I learned in Cambridge AS Level and have a basic understanding of machine learning.
 
 ## What this project includes

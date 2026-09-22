@@ -18,7 +18,7 @@ I built this personal project to implement linear regression from scratch in Pyt
 ## Current Status & Notes
 
 * There is commented-out testing code and dataset generation logic left in `main.py` from experimenting with different ideas.
-* Placeholders exist for RMSProp and Adam, which I plan to finish when I revisit optimization algorithms later.
+* Placeholders exist for Adam, which I plan to finish when I revisit optimization algorithms later.
 * There are plans to make it support multidimensional datasets and feature selections such as **Ridge** and **Lasso**.
 * It’s meant to show my raw process of building a model from the ground up, making mistakes, and figuring out how the underlying math actually works.
 

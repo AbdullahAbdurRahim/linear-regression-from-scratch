@@ -136,8 +136,34 @@ Returns:
     new_learning_rate = initial_learning_rate / ((squared_sum_of_derivatives + (1e-8)) ** 0.5)
     return (new_learning_rate, squared_sum_of_derivatives)
 
-def rmsprop():
-    pass
+def rmsprop(initial_learning_rate, current_derivative, weighted_squared_sum_of_derivatives, beta):
+    """
+## Brief overview of the function
+Finds the new, optimal learning rate using RMSProp (Root Mean Squared Propagation) optimizer algorithm to help the 
+model reach covergence faster.
+
+Args:
+    initial_learning_rate (float): the learning rate with which the linear regression model started training.
+        
+    current_derivative (float): the partial derivative of error/loss with respect to m/gradient or c/y-intercept.
+
+    weighted_squared_sum_of_derivatives (float): the weighted squared sum of the partial derivative of error/loss 
+                                        with respect to m/gradient or c/y-intercept.
+    
+    beta (float): the decay factor by which the weighted squared sum of the partial derivative and current partial 
+                derivative is multiplied by.
+
+Returns:
+    tuple:
+        A tuple containing 
+        1) Value with a floating/decimal point, which is the new, optimal learning rate that will help the model reach
+           convergence faster.
+        2) Weighted squared sum of derivatives
+    
+    """
+    weighted_squared_sum_of_derivatives = (beta * weighted_squared_sum_of_derivatives) + (1-beta) * (current_derivative ** 2)
+    new_learning_rate = initial_learning_rate / ((weighted_squared_sum_of_derivatives + (1e-8)) ** 0.5)
+    return (new_learning_rate, weighted_squared_sum_of_derivatives)
 
 def adam():
     pass

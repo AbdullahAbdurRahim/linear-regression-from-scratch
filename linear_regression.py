@@ -116,7 +116,7 @@ Returns:
 def adagrad(initial_learning_rate, current_derivative, squared_sum_of_derivatives):
     """
 ## Brief overview of this function
-Finds the new, optimal learning rate using the Adagrad optimizer algorithm to help the model
+Finds the new, optimal learning rate using the Adagrad optimiser algorithm to help the model
 reach convergence faster.
 
 Args:
@@ -139,7 +139,7 @@ Returns:
 def rmsprop(initial_learning_rate, current_derivative, weighted_squared_sum_of_derivatives, beta):
     """
 ## Brief overview of the function
-Finds the new, optimal learning rate using RMSProp (Root Mean Squared Propagation) optimizer algorithm to help the 
+Finds the new, optimal learning rate using RMSProp (Root Mean Squared Propagation) optimiser algorithm to help the 
 model reach covergence faster.
 
 Args:
@@ -150,7 +150,7 @@ Args:
     weighted_squared_sum_of_derivatives (float): the weighted squared sum of the partial derivative of error/loss 
                                         with respect to m/gradient or c/y-intercept.
     
-    beta (float): the decay factor by which the weighted squared sum of the partial derivative and current partial 
+    beta (float): the decay factor by which the weighted squared sum of the partial derivative and square of current partial 
                 derivative is multiplied by.
 
 Returns:
@@ -161,33 +161,72 @@ Returns:
         2) Weighted squared sum of derivatives
     
     """
-    weighted_squared_sum_of_derivatives = (beta * weighted_squared_sum_of_derivatives) + (1-beta) * (current_derivative ** 2)
+    weighted_squared_sum_of_derivatives = (beta * weighted_squared_sum_of_derivatives) + (1 - beta) * (current_derivative ** 2)
     new_learning_rate = initial_learning_rate / ((weighted_squared_sum_of_derivatives + (1e-8)) ** 0.5)
     return (new_learning_rate, weighted_squared_sum_of_derivatives)
 
-def adam():
-    pass
+def adam(initial_learning_rate, current_derivative, momentum, beta_1, weighted_squared_sum_of_derivatives, beta_2, n):
+    """
+## Brief overview of the function
+Finds the new, optimal learning rate using Adam (Adaptive momentum) optimiser algorithm to help the 
+model reach covergence faster.
 
-def gradient_descent(m_now, c_now, actual_y_values, x_values, initial_learning_rate, optimizer=None, **kwargs):
+Args:
+    initial_learning_rate (float): the learning rate with which the linear regression model started training.
+        
+    current_derivative (float): the partial derivative of error/loss with respect to m/gradient or c/y-intercept.
+    
+    momentum (float): the weighted sum of partial dertivative of error/loss with respect to m/gradient or c/y-intercept
+
+    beta_1 (float): the decay factor by which the momentum and current partial derivative is multiplied by.
+
+    weighted_squared_sum_of_derivatives (float): the weighted squared sum of the partial derivative of error/loss 
+                with respect to m/gradient or c/y-intercept.
+
+    beta_2 (float): the decay factor by which the weighted squared sum of the partial derivative and square of current partial 
+                derivative is multiplied by.
+
+    n (int): iteration number
+
+Returns:
+    tuple:
+        A tuple containing 
+        1) Value with a floating/decimal point, which is the new, optimal learning rate that will help the model reach
+           convergence faster.
+        2) Corrected momentum, which is the momentum after applying bias correction.
+        3) Weighted squared sum of derivatives
+        4) Momentum before correction
+
+    """
+    weighted_squared_sum_of_derivatives = (
+        (beta_2 * weighted_squared_sum_of_derivatives) + (1 - beta_2) * (current_derivative ** 2)
+    )
+    momentum = beta_1 * momentum + (1 - beta_1) * current_derivative
+    corrected_weighted_squared_sum_of_derivatives = weighted_squared_sum_of_derivatives / (1 - (beta_2 ** n))
+    corrected_momentum = momentum / (1 - (beta_1 ** n))
+    new_learning_rate = initial_learning_rate / ((corrected_weighted_squared_sum_of_derivatives + (1e-8)) ** 0.5)
+    return (new_learning_rate, corrected_momentum, weighted_squared_sum_of_derivatives, momentum)
+
+def gradient_descent(m_now, c_now, actual_y_values, x_values, initial_learning_rate, optimiser=None, **kwargs):
     """
 ## Brief overview of this function:
 Performs gradient descent once (when called).
 
 Args:
 
-    m_now (float):m_now is basically the current m (gradient) value.
+    m_now (float): m_now is basically the current m (gradient) value.
 
-    c_now (float):c_now is basically the current c (y-intercept) value.
+    c_now (float): c_now is basically the current c (y-intercept) value.
 
-    actual_y_values (list or numpy.ndarray):a list or array of the y-values/y-coordinates from the dataset.
+    actual_y_values (list or numpy.ndarray): a list or array of the y-values/y-coordinates from the dataset.
 
-    x_values (list or numpy.ndarray):a list or array of the x-values/x-coordinates from the dataset.
+    x_values (list or numpy.ndarray): a list or array of the x-values/x-coordinates from the dataset.
 
-    initial_learning_rate (float):a learning rate that will be used initially (if optimizer is enabled) 
+    initial_learning_rate (float): a learning rate that will be used initially (if optimiser is enabled) 
         or will always be used, i.e, the value of learning rate will not change/static learning rate
-        (if optimizer is disabled).
+        (if optimiser is disabled).
 
-    optimizer (str, optional):this actually is the algorithm used to change learning rate dynamically so that
+    optimiser (str, optional): this actually is the algorithm used to change learning rate dynamically so that
         convergence is reached quickly. 
         Default value is None, which means the function uses a static learning rate. 
         Other values that are allowed are:
@@ -197,14 +236,82 @@ Args:
     
         These values should be passed as strings and spelling must be the same as the ones mentioned above, 
         otherwise the function will simply use the default value (None).
+    
+## Optimiser-specific keyword arguments:
+    If optimiser used is "adagrad", pass these addtional keyword arguments with exact wording:
+        squared_sum_of_pd_of_e_by_m (float): The squared sum of partial derivatives of error/loss with respect to 
+            m/gradient.
 
-Returns:
-    tuple:
-    A tuple containing values in this order
-    1) partial derivative of error/loss function with respect to m/gradient 
-    2) partial derivative of error/loss function with respect to c/y-intercept 
-    3) updated value of m/gradient 
-    4) updated value of c/y-intercept
+        squared_sum_of_pd_of_e_by_c (float): The squared sum of partial derivatives of error/loss with respect to 
+            c/y-intercept.
+    
+    If optimiser used is "rmsprop", pass these additional keyword arguments with exact wording:
+        weighted_squared_sum_of_pd_of_e_by_m (float): the weighted squared sum of the partial derivative of error/loss 
+            with respect to m/gradient.
+
+        weighted_squared_sum_of_pd_of_e_by_c (float): the weighted squared sum of the partial derivative of error/loss 
+            with respect to c/y-intercept.
+        
+        beta (float): a value between 0 and 1 exclusive, used in calculating the weighted squared sum of derivatives. 
+            Determines the size or amount of past squared derivatives remembered.
+    
+    If optimiser used is "adam", pass these additional keyword arguments with exact wording:
+        momentum_for_m (float): the weighted sum of the partial derivative of error/loss with respect to m/gradient.
+    
+        momentum_for_c (float): the weighted sum of the partial derivative of error/loss with respect to c/y-intercept.
+
+        beta_1 (float): a value between 0 and 1 exclusive, used in calculating the weighted sum of derivatives. 
+            Determines the size or amount of past derivatives remembered.
+
+        weighted_squared_sum_of_pd_of_e_by_m (float): the weighted squared sum of the partial derivative of error/loss 
+            with respect to m/gradient.
+        
+        weighted_squared_sum_of_pd_of_e_by_c (float): the weighted squared sum of the partial derivative of error/loss 
+            with respect to c/y-intercept.
+                
+        beta_2 (float): a value between 0 and 1 exclusive, used in calculating the weighted squared sum of derivatives. 
+            Determines the size of past squared derivatives remembered.
+
+## Returns:
+    If optimiser is None:
+        tuple:
+            A tuple containing values in this order
+            1) partial derivative of error/loss function with respect to m/gradient 
+            2) partial derivative of error/loss function with respect to c/y-intercept 
+            3) updated value of m/gradient 
+            4) updated value of c/y-intercept
+    
+    If optimiser is "adagrad":
+        tuple:
+            A tuple containing values in this order
+            1) partial derivative of error/loss function with respect to m/gradient 
+            2) partial derivative of error/loss function with respect to c/y-intercept 
+            3) updated value of m/gradient 
+            4) updated value of c/y-intercept
+            5) squared sum of partial derivative of error/loss by m/gradient
+            6) squared sum of partial derivative of error/loss by c/y-intercept
+
+    If optimiser is "rmsprop":
+        tuple:
+            A tuple containing values in this order
+            1) partial derivative of error/loss function with respect to m/gradient 
+            2) partial derivative of error/loss function with respect to c/y-intercept 
+            3) updated value of m/gradient 
+            4) updated value of c/y-intercept
+            5) weighted squared sum of partial derivative of error/loss by m/gradient
+            6) weighted squared sum of partial derivative of error/loss by c/y-intercept
+
+    If optimiser is "adam":
+        tuple:
+            A tuple containing values in this order
+            1) partial derivative of error/loss function with respect to m/gradient 
+            2) partial derivative of error/loss function with respect to c/y-intercept 
+            3) updated value of m/gradient 
+            4) updated value of c/y-intercept
+            5) weighted squared sum of partial derivative of error/loss by m/gradient
+            6) weighted squared sum of partial derivative of error/loss by c/y-intercept
+            7) momentum for m/gradient
+            8) momentum for c/y-intercept
 
     """
     # list_actual_y_values = list(actual_y_values)
@@ -219,28 +326,80 @@ Returns:
     # del list_actual_y_values
     # del list_x_values
 
-    global squared_sum_of_pd_of_e_by_m, squared_sum_of_pd_of_e_by_c, beta, momentum_of_pd_of_e_by_m, momentum_of_pd_of_e_by_c
+    # Interesting thing to note: should I calculate the pds in this function, as well as the momentum, or leave both to 
+    # their respective optimiser function?
 
     pd_of_e_by_m = de_by_dm(actual_y_values, x_values, m_now, c_now)
     pd_of_e_by_c = de_by_dc(actual_y_values, x_values, m_now, c_now)
 
-    optimizer = optimizer.lower() if isinstance(optimizer, str) else None
+    optimiser = optimiser.lower() if isinstance(optimiser, str) else None
 
-    if optimizer == "adagrad":
-        learning_rate_for_pd_of_e_by_m, squared_sum_of_pd_of_e_by_m = adagrad(initial_learning_rate, pd_of_e_by_m, squared_sum_of_pd_of_e_by_m)
-        learning_rate_for_pd_of_e_by_c, squared_sum_of_pd_of_e_by_c = adagrad(initial_learning_rate, pd_of_e_by_c, squared_sum_of_pd_of_e_by_c)
+    if optimiser == "adagrad":
+        learning_rate_for_pd_of_e_by_m, squared_sum_of_pd_of_e_by_m = adagrad(
+            initial_learning_rate, pd_of_e_by_m, kwargs["squared_sum_of_pd_of_e_by_m"]
+        )
+        learning_rate_for_pd_of_e_by_c, squared_sum_of_pd_of_e_by_c = adagrad(
+            initial_learning_rate, pd_of_e_by_c, kwargs["squared_sum_of_pd_of_e_by_c"]
+        )
         m_now = m_now - (learning_rate_for_pd_of_e_by_m * pd_of_e_by_m)
         c_now = c_now - (learning_rate_for_pd_of_e_by_c * pd_of_e_by_c)
+        return (pd_of_e_by_m, pd_of_e_by_c, m_now, c_now, squared_sum_of_pd_of_e_by_m, squared_sum_of_pd_of_e_by_c)
     
-    elif optimizer == "rmsprop":
-        pass
-    elif optimizer == "adam":
-        pass
+    elif optimiser == "rmsprop":
+        learning_rate_for_pd_of_e_by_m, weighted_squared_sum_of_pd_of_e_by_m = rmsprop(
+            initial_learning_rate, pd_of_e_by_m, kwargs["weighted_squared_sum_of_pd_of_e_by_m"], kwargs["beta"]
+        )
+        learning_rate_for_pd_of_e_by_c, weighted_squared_sum_of_pd_of_e_by_c = rmsprop(
+            initial_learning_rate, pd_of_e_by_c, kwargs["weighted_squared_sum_of_pd_of_e_by_c"], kwargs["beta"]
+        )
+        m_now = m_now - (learning_rate_for_pd_of_e_by_m * pd_of_e_by_m)
+        c_now = c_now - (learning_rate_for_pd_of_e_by_c * pd_of_e_by_c)
+        return (
+            pd_of_e_by_m, 
+            pd_of_e_by_c, 
+            m_now, 
+            c_now, 
+            weighted_squared_sum_of_pd_of_e_by_m, 
+            weighted_squared_sum_of_pd_of_e_by_c
+        )
+
+    elif optimiser == "adam":
+        learning_rate_for_pd_of_e_by_m, corrected_momentum_for_m, weighted_squared_sum_of_pd_of_e_by_m, momentum_for_m = adam(
+            initial_learning_rate, 
+            pd_of_e_by_m, 
+            kwargs["momentum_for_m"], 
+            kwargs["beta_1"], 
+            kwargs["weighted_squared_sum_of_pd_of_e_by_m"], 
+            kwargs["beta_2"], 
+            kwargs["n"] 
+        )
+        learning_rate_for_pd_of_e_by_c, corrected_momentum_for_c, weighted_squared_sum_of_pd_of_e_by_c, momentum_for_c = adam(
+            initial_learning_rate, 
+            pd_of_e_by_c, 
+            kwargs["momentum_for_c"], 
+            kwargs["beta_1"], 
+            kwargs["weighted_squared_sum_of_pd_of_e_by_c"], 
+            kwargs["beta_2"], 
+            kwargs["n"] 
+        )
+        m_now = m_now - (learning_rate_for_pd_of_e_by_m * corrected_momentum_for_m)
+        c_now = c_now - (learning_rate_for_pd_of_e_by_c * corrected_momentum_for_c)
+        return (
+            pd_of_e_by_m, 
+            pd_of_e_by_c, 
+            m_now, 
+            c_now, 
+            weighted_squared_sum_of_pd_of_e_by_m, 
+            weighted_squared_sum_of_pd_of_e_by_c, 
+            momentum_for_m, 
+            momentum_for_c
+        )
+        
     else:
         m_now = m_now - (initial_learning_rate * pd_of_e_by_m)
         c_now = c_now - (initial_learning_rate * pd_of_e_by_c)
+        return (pd_of_e_by_m, pd_of_e_by_c, m_now, c_now)
     
-    return (pd_of_e_by_m, pd_of_e_by_c, m_now, c_now,)
 
 def standardise_data(og_y_values, og_x_values):
     """
@@ -324,7 +483,11 @@ current_c = 0
 learning_rate = 0.8
 squared_sum_of_pd_of_e_by_m = 0
 squared_sum_of_pd_of_e_by_c = 0
-beta = 0
+weighted_squared_sum_of_pd_of_e_by_m = 0
+weighted_squared_sum_of_pd_of_e_by_c = 0
+beta = 0.99
+beta_1 = 0.9
+beta_2 = 0.999
 momentum_of_pd_of_e_by_m = 0
 momentum_of_pd_of_e_by_c = 0
 
@@ -346,10 +509,66 @@ y_standardised, x_standardised, mean_of_y, mean_of_x, std_dev_of_y, std_dev_of_x
 while True:
     try:
         print(mse(current_m, current_c, y_standardised, x_standardised))
-        pd_m, pd_c, current_m, current_c = gradient_descent(
-            current_m, current_c, y_standardised, x_standardised, learning_rate, optimizer="adagrad"
+        """
+        pd_m, pd_c, current_m, current_c, squared_sum_of_pd_of_e_by_m, squared_sum_of_pd_of_e_by_c = gradient_descent(
+            current_m, 
+            current_c, 
+            y_standardised, 
+            x_standardised, 
+            learning_rate, 
+            optimiser="adagrad", 
+            squared_sum_of_pd_of_e_by_m=squared_sum_of_pd_of_e_by_m, 
+            squared_sum_of_pd_of_e_by_c=squared_sum_of_pd_of_e_by_c
+        )
+        """
+
+        
+        (
+            pd_m, 
+            pd_c, 
+            current_m, 
+            current_c, 
+            weighted_squared_sum_of_pd_of_e_by_m, 
+            weighted_squared_sum_of_pd_of_e_by_c, 
+            momentum_of_pd_of_e_by_m, 
+            momentum_of_pd_of_e_by_c
+        ) = gradient_descent(
+            current_m, 
+            current_c, 
+            y_standardised, 
+            x_standardised, 
+            learning_rate, 
+            optimiser="adam",
+            momentum_for_m=momentum_of_pd_of_e_by_m,
+            momentum_for_c=momentum_of_pd_of_e_by_c,
+            beta_1=beta_1,
+            weighted_squared_sum_of_pd_of_e_by_m=weighted_squared_sum_of_pd_of_e_by_m,
+            weighted_squared_sum_of_pd_of_e_by_c=weighted_squared_sum_of_pd_of_e_by_c,
+            beta_2=beta_2,
+            n=n
         )
         
+
+        """
+        (
+            pd_m, pd_c, current_m, current_c, weighted_squared_sum_of_pd_of_e_by_m, weighted_squared_sum_of_pd_of_e_by_c
+        ) = gradient_descent(
+            current_m, 
+            current_c, 
+            y_standardised, 
+            x_standardised, 
+            learning_rate, 
+            optimiser="rmsprop", 
+            weighted_squared_sum_of_pd_of_e_by_m=weighted_squared_sum_of_pd_of_e_by_m, 
+            weighted_squared_sum_of_pd_of_e_by_c=weighted_squared_sum_of_pd_of_e_by_c, 
+            beta=beta
+        )
+        """
+
+        """
+        pd_m, pd_c, current_m, current_c = gradient_descent(current_m, current_c, y_standardised, x_standardised, learning_rate)
+        """
+
         iteration.append(n)
         error.append(mse(current_m, current_c, y_standardised, x_standardised))
 
